@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLORA-OS // Plant Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green: #2e7d32;
+            --green-mid: #388e3c;
+            --green-light: #4caf50;
+            --green-pale: #e8f5e9;
+            --amber: #e65100;
+            --red: #c62828;
+            --blue: #1565c0;
+            --bg: #f5f7f2;
+            --bg-card: #ffffff;
+            --bg-header: #2e7d32;
+            --border: #c8d8c4;
+            --border-strong: #a5c4a0;
+            --text: #1a2e1a;
+            --text-mid: #3d5c3d;
+            --text-dim: #6a8a6a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .app {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 28px;
+            background: var(--bg-header);
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .logo { display: flex; align-items: center; gap: 14px; }
+        .logo-icon {
+            width: 46px; height: 46px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em;
+        }
+        .logo-text h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3em; font-weight: 900;
+            color: #ffffff; letter-spacing: 3px;
+        }
+        .logo-text p {
+            font-size: 0.72em;
+            color: rgba(255,255,255,0.75);
+            letter-spacing: 1px; margin-top: 2px;
+        }
+
+        .header-stats { display: flex; gap: 14px; }
+        .stat-pill {
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            font-size: 0.78em;
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #ffffff;
+        }
+        .stat-pill .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #a5d6a7;
+            animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.4; }
+        }
+
+        /* ── MAIN GRID ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px; margin-bottom: 20px;
+        }
+
+        /* ── CAMERA PANEL ── */
+        .camera-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px; overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 18px;
+            background: var(--green-pale);
+            border-bottom: 2px solid var(--border-strong);
+        }
+        .panel-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.72em; letter-spacing: 2px;
+            color: var(--green); font-weight: 700;
+        }
+        .live-badge {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.74em; color: var(--green-mid); font-weight: 600;
+        }
+        .live-dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--green-light);
+            animation: blink 1.2s ease-in-out infinite;
+        }
+
+        .camera-feed { position: relative; background: #1a1a1a; }
+        .camera-feed img {
+            width: 100%; height: 280px;
+            object-fit: cover; display: block;
+        }
+        .cam-overlay-text {
+            position: absolute; bottom:10px; left:12px;
+            font-size: 0.68em; color: #fff;
+            background: rgba(0,0,0,0.55);
+            padding: 3px 8px; border-radius: 3px; z-index: 2;
+        }
+        .cam-overlay-ip {
+            position: absolute; bottom:10px; right:12px;
+            font-size: 0.68em; color: #ddd;
+            background: rgba(0,0,0,0.55);
+            padding: 3px 8px; border-radius: 3px; z-index: 2;
+        }
+        .camera-info {
+            padding: 11px 18px;
+            display: flex; justify-content: space-between;
+            border-top: 1px solid var(--border);
+            font-size: 0.76em; color: var(--text-mid);
+            background: var(--green-pale);
+        }
+        .cam-status { display: flex; align-items: center; gap: 8px; }
+        .cam-status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); }
+
+        /* ── CONTROLS PANEL ── */
+        .controls-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .btn-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px; padding: 18px; flex: 1;
+        }
+        .cmd-btn {
+            background: var(--green-pale);
+            border: 2px solid var(--border-strong);
+            color: var(--text);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.82em; padding: 16px 10px;
+            cursor: pointer; border-radius: 5px;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 8px;
+            transition: all 0.18s; letter-spacing: 1px; font-weight: 600;
+        }
+        .cmd-btn:hover {
+            background: var(--green); border-color: var(--green);
+            color: #ffffff; transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(46,125,50,0.25);
+        }
+        .cmd-btn:active  { transform: translateY(0); }
+        .cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .cmd-btn .btn-icon { font-size: 1.8em; }
+        .cmd-btn.primary {
+            border-color: var(--green); background: #c8e6c9; color: var(--green);
+        }
+
+        .terminal-log {
+            margin: 0 18px 18px;
+            background: #1e2b1e;
+            border: 1px solid var(--border-strong);
+            border-radius: 4px; padding: 12px 14px;
+            height: 110px; overflow-y: auto;
+            font-size: 0.76em; color: #a5d6a7; line-height: 1.7;
+        }
+        .terminal-log::-webkit-scrollbar { width: 4px; }
+        .terminal-log::-webkit-scrollbar-thumb { background: var(--border); }
+        .log-entry { padding: 2px 0; }
+        .log-entry.success { color: #69f0ae; }
+        .log-entry.error   { color: #ff7043; }
+        .log-entry.info    { color: #80deea; }
+
+        /* ── MOISTURE ZONES ── */
+        .zones-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; margin-bottom: 20px;
+        }
+        .zone-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px; overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .zone-card.zone-a { border-top: 4px solid var(--green); }
+        .zone-card.zone-b { border-top: 4px solid var(--blue); }
+
+        .zone-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .zone-a .zone-header { background: var(--green-pale); }
+        .zone-b .zone-header { background: #e3f2fd; }
+
+        .zone-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9em; letter-spacing: 2px; font-weight: 700;
+        }
+        .zone-a .zone-label { color: var(--green); }
+        .zone-b .zone-label { color: var(--blue); }
+
+        .zone-badge {
+            font-size: 0.7em; padding: 4px 14px;
+            border-radius: 20px; letter-spacing: 1px; font-weight: 600;
+        }
+        .zone-a .zone-badge { background: #c8e6c9; color: var(--green); border: 1px solid #a5c8a5; }
+        .zone-b .zone-badge { background: #bbdefb; color: var(--blue); border: 1px solid #90caf9; }
+
+        .zone-body { padding: 22px 20px; display: flex; align-items: center; gap: 24px; }
+
+        .gauge-container { position: relative; width: 120px; height: 120px; flex-shrink: 0; }
+        .gauge-svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+        .gauge-track { fill:none; stroke: #e0e0e0; stroke-width:9; }
+        .gauge-fill {
+            fill:none; stroke-width:9; stroke-linecap:round;
+            transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1);
+        }
+        .zone-a .gauge-fill { stroke: var(--green); }
+        .zone-b .gauge-fill { stroke: var(--blue); }
+
+        .gauge-center {
+            position: absolute; top:50%; left:50%;
+            transform: translate(-50%,-50%); text-align:center;
+        }
+        .gauge-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.7em; font-weight:700; line-height:1;
+        }
+        .zone-a .gauge-value { color: var(--green); }
+        .zone-b .gauge-value { color: var(--blue); }
+        .gauge-unit { font-size: 0.62em; color: var(--text-dim); margin-top: 3px; }
+
+        .zone-info { flex: 1; }
+        .zone-status-label { font-size: 1em; margin-bottom: 14px; font-weight: 600; color: var(--text); }
+
+        .moisture-bar-wrap { margin-bottom: 12px; }
+        .mb-label {
+            display: flex; justify-content: space-between;
+            font-size: 0.72em; color: var(--text-dim); margin-bottom: 6px;
+        }
+        .mb-track { width: 100%; height: 10px; background: #e0e0e0; border-radius: 5px; overflow: hidden; }
+        .mb-fill { height: 100%; border-radius: 5px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+        .zone-a .mb-fill { background: var(--green); }
+        .zone-b .mb-fill { background: var(--blue); }
+
+        .zone-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+        .meta-chip {
+            font-size: 0.7em; padding: 4px 10px;
+            border: 1px solid var(--border); border-radius: 4px; color: var(--text-mid);
+        }
+        .zone-a .meta-chip { background: var(--green-pale); }
+        .zone-b .meta-chip { background: #e3f2fd; }
+
+        .zone-threshold-bars { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+        .threshold-row { display:flex; align-items:center; gap:8px; font-size: 0.72em; color: var(--text-mid); }
+        .threshold-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+        /* ── SYSTEM STATUS ONLY ── */
+        .analytics-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; }
+        .analytics-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px; padding: 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .analytics-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75em; letter-spacing: 2px;
+            color: var(--green); margin-bottom: 16px;
+            padding-bottom: 10px; border-bottom: 1px solid var(--border);
+        }
+
+        .status-rows { display:flex; flex-direction:column; gap:0; }
+        .status-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+            font-size: 0.82em;
+        }
+        .status-row:last-child { border-bottom:none; }
+        .sval { color: var(--green); font-family:'Orbitron',monospace; font-size: 0.88em; font-weight: 700; }
+        .sval.warn { color: var(--amber); }
+        .sval.err  { color: var(--red); }
+
+        /* ── FOOTER ── */
+        .footer {
+            text-align:center; font-size: 0.72em;
+            color: var(--text-dim); letter-spacing: 1px; padding: 14px;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position:fixed; bottom:30px; right:30px;
+            padding:14px 22px; border-radius:6px;
+            font-size: 0.85em; z-index:9998; border:1px solid;
+            max-width:340px; letter-spacing:1px;
+        }
+        .toast.success { background:#e8f5e9; border-color:var(--green); color:var(--green); }
+        .toast.error   { background:#ffebee; border-color:var(--red);   color:var(--red); }
+        .toast.info    { background:#e3f2fd; border-color:var(--blue);  color:var(--blue); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .main-grid, .zones-grid { grid-template-columns: 1fr; }
+            .header-stats { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">
+                <h1>FLORA-OS</h1>
+                <p>PLANT MONITORING TERMINAL v2.4</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-pill">
+                <span class="dot"></span>
+                <span id="systemTime">--:--:--</span>
+            </div>
+            <div class="stat-pill">
+                <span class="dot"></span>
+                <span>192.168.0.110</span>
+            </div>
+            <div class="stat-pill">
+                <span class="dot"></span>
+                <span id="uptimeStat">UPTIME: 0s</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- CAMERA + CONTROLS -->
+    <div class="main-grid">
+
+        <div class="camera-panel">
+            <div class="panel-header">
+                <span class="panel-label">📹 CAM-01 // LIVE FEED</span>
+                <div class="live-badge">
+                    <span class="live-dot" id="liveDot"></span>
+                    <span id="liveText">STREAMING</span>
+                </div>
+            </div>
+            <div class="camera-feed">
+                <img id="cam" src="" alt="Live Feed">
+                <div class="cam-overlay-text">REC ● LIVE</div>
+                <div class="cam-overlay-ip">192.168.0.118:81</div>
+            </div>
+            <div class="camera-info">
+                <div class="cam-status">
+                    <span class="cam-status-dot" id="camDot"></span>
+                    <span id="cameraStatus">INITIALIZING...</span>
+                </div>
+                <span id="frameCount">FRAMES: 0</span>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div class="panel-header">
+                <span class="panel-label">⚡ COMMAND CENTER</span>
+                <span style="font-size:0.7em;color:var(--text-dim)">SELECT OPERATION</span>
+            </div>
+            <div class="btn-grid">
+                <button class="cmd-btn primary" id="captureBtn" onclick="captureImage()">
+                    <span class="btn-icon">📸</span>
+                    <span>CAPTURE</span>
+                </button>
+                <button class="cmd-btn" id="testBtn" onclick="testCamera()">
+                    <span class="btn-icon">🔍</span>
+                    <span>PING CAM</span>
+                </button>
+                <button class="cmd-btn" onclick="refreshStream()">
+                    <span class="btn-icon">🔄</span>
+                    <span>REFRESH</span>
+                </button>
+                <button class="cmd-btn" onclick="forceSync()">
+                    <span class="btn-icon">📡</span>
+                    <span>SYNC DATA</span>
+                </button>
+            </div>
+            <div class="panel-header" style="border-top:1px solid var(--border)">
+                <span class="panel-label">🖥 SYSTEM LOG</span>
+                <span style="font-size:0.7em;color:var(--text-dim)" id="logCount">0 ENTRIES</span>
+            </div>
+            <div class="terminal-log" id="terminalLog">
+                <div class="log-entry info">> FLORA-OS BOOT SEQUENCE INITIATED</div>
+                <div class="log-entry info">> LOADING SENSOR MODULES...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MOISTURE ZONES -->
+    <div class="zones-grid">
+
+        <!-- ZONE A -->
+        <div class="zone-card zone-a">
+            <div class="zone-header">
+                <span class="zone-label">🌱 ZONE A</span>
+                <span class="zone-badge" id="zoneABadge">MONITORING</span>
+            </div>
+            <div class="zone-body">
+                <div class="gauge-container">
+                    <svg class="gauge-svg" viewBox="0 0 110 110">
+                        <circle class="gauge-track" cx="55" cy="55" r="42" stroke-dasharray="263.9" stroke-dashoffset="0"/>
+                        <circle class="gauge-fill" id="gaugeA" cx="55" cy="55" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="gauge-value" id="zoneAValue">--</div>
+                        <div class="gauge-unit">%</div>
+                    </div>
+                </div>
+                <div class="zone-info">
+                    <div class="zone-status-label" id="zoneAStatus">AWAITING DATA</div>
+                    <div class="moisture-bar-wrap">
+                        <div class="mb-label">
+                            <span>MOISTURE LEVEL</span>
+                            <span id="zoneAValMini">0%</span>
+                        </div>
+                        <div class="mb-track">
+                            <div class="mb-fill" id="barA" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="zone-threshold-bars">
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#c62828"></span><span>DRY: &lt;30%</span></div>
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#e65100"></span><span>MODERATE: 30–60%</span></div>
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#2e7d32"></span><span>OPTIMAL: &gt;60%</span></div>
+                    </div>
+                    <div class="zone-meta">
+                        <span class="meta-chip">SENSOR: S-01</span>
+                        <span class="meta-chip" id="zoneALastUpdate">LAST: --</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZONE B -->
+        <div class="zone-card zone-b">
+            <div class="zone-header">
+                <span class="zone-label">🌱 ZONE B</span>
+                <span class="zone-badge" id="zoneBBadge">MONITORING</span>
+            </div>
+            <div class="zone-body">
+                <div class="gauge-container">
+                    <svg class="gauge-svg" viewBox="0 0 110 110">
+                        <circle class="gauge-track" cx="55" cy="55" r="42" stroke-dasharray="263.9" stroke-dashoffset="0"/>
+                        <circle class="gauge-fill" id="gaugeB" cx="55" cy="55" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="gauge-value" id="zoneBValue">--</div>
+                        <div class="gauge-unit">%</div>
+                    </div>
+                </div>
+                <div class="zone-info">
+                    <div class="zone-status-label" id="zoneBStatus">AWAITING DATA</div>
+                    <div class="moisture-bar-wrap">
+                        <div class="mb-label">
+                            <span>MOISTURE LEVEL</span>
+                            <span id="zoneBValMini">0%</span>
+                        </div>
+                        <div class="mb-track">
+                            <div class="mb-fill" id="barB" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="zone-threshold-bars">
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#c62828"></span><span>DRY: &lt;30%</span></div>
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#e65100"></span><span>MODERATE: 30–60%</span></div>
+                        <div class="threshold-row"><span class="threshold-dot" style="background:#1565c0"></span><span>OPTIMAL: &gt;60%</span></div>
+                    </div>
+                    <div class="zone-meta">
+                        <span class="meta-chip">SENSOR: S-02</span>
+                        <span class="meta-chip" id="zoneBLastUpdate">LAST: --</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SYSTEM STATUS ONLY -->
+    <div class="analytics-grid">
+        <div class="analytics-card">
+            <h3>🖥 SYSTEM STATUS</h3>
+            <div class="status-rows">
+                <div class="status-row"><span>SERVER</span>  <span class="sval" id="sServer">ONLINE</span></div>
+                <div class="status-row"><span>CAM LINK</span><span class="sval warn" id="sCam">CHECKING</span></div>
+                <div class="status-row"><span>SENSOR A</span><span class="sval warn" id="sSensorA">WAITING</span></div>
+                <div class="status-row"><span>SENSOR B</span><span class="sval warn" id="sSensorB">WAITING</span></div>
+                <div class="status-row"><span>CAPTURES</span><span class="sval" id="sCaps">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        FLORA-OS v2.4 // ESP32-CAM PLANT MONITORING SYSTEM // ALL SYSTEMS NOMINAL
+    </div>
+
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
